@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messy to Clean - MS Word </title>
+    <style>
+        /* Modern Apple-Style Glassmorphism Setup */
+        :root {
+            --bright-blue: #0078D4;
+            --fresh-green: #00C853;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-dark: #1e293b;
+            --text-muted: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, SolaimanLipi, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 20%, #e0f2fe 0%, transparent 40%),
+                        radial-gradient(circle at 80% 80%, #dcfce7 0%, transparent 40%),
+                        linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: var(--text-dark);
+        }
+
+        /* Top Bar Navigation */
+        header {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 14px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--bright-blue);
+        }
+
+        .class-badge {
+            background: rgba(0, 120, 212, 0.1);
+            color: var(--bright-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* macOS Inspired Two Column Workspace Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 35px;
+            padding: 30px 5%;
+            flex-grow: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Premium Glass Window Element Container */
+        .glass-window {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+        }
+
+        .glass-window.focus-highlight {
+            transform: scale(1.01);
+            box-shadow: 0 30px 60px rgba(0, 120, 212, 0.12);
+            border-color: rgba(0, 120, 212, 0.4);
+        }
+
+        /* macOS style Window Chrome Controls */
+        .window-chrome {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mac-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .mac-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot-red { background-color: #ff5f56; }
+        .dot-yellow { background-color: #ffbd2e; }
+        .dot-green { background-color: #27c93f; }
+
+        .window-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        /* Text Document Layout Blocks */
+        .document-paper {
+            background: #ffffff;
+            margin: 25px;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* --- LEFT SIDE: Messy Column Styles --- */
+        .messy-canvas {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 2;
+            color: #b45309;
+            text-align: left;
+        }
+        .messy-line-segment {
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        .messy-line-segment.processing {
+            background: rgba(217, 119, 6, 0.15);
+            color: #dc2626;
+            font-weight: bold;
+        }
+        .messy-line-segment.cleared {
+            opacity: 0.25;
+            text-decoration: line-through;
+        }
+
+        /* --- RIGHT SIDE: Clean Column Styles --- */
+        .clean-canvas {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #334155;
+        }
+
+        /* Dynamic Rendered Heading and Paragraph Rules */
+        .wp-title-node {
+            text-align: center;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--bright-blue);
+            text-decoration: underline;
+            margin-bottom: 24px;
+        }
+        .wp-p-node {
+            font-size: 16px;
+            line-height: 1.8;
+            text-align: justify;
+            text-justify: inter-word;
+            margin-bottom: 12px;
+        }
+        
+        /* 🛠️ FIX APPLIED HERE: Both strong and em tags are now styled identically with Bold, Italic, and Green */
+        .wp-p-node strong, .wp-p-node em {
+            color: var(--fresh-green);
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        .type-cursor {
+            display: inline-block;
+            width: 2.5px;
+            height: 18px;
+            background-color: var(--bright-blue);
+            margin-left: 2px;
+            animation: blinker 0.6s infinite alternate;
+            vertical-align: middle;
+        }
+        @keyframes blinker { 0% { opacity: 0; } 100% { opacity: 1; } }
+
+        /* Dashboard Controller Section */
+        footer {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            padding: 20px 5%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Premium Presentation Buttons */
+        .btn {
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bright-blue), #005a9e);
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 45px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0, 120, 212, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 120, 212, 0.35);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .history-deck {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--glass-border);
+            color: var(--text-dark);
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #ffffff;
+            border-color: var(--bright-blue);
+            color: var(--bright-blue);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* --- MAC-STYLE POPUP MODALS ENGINE --- */
+        .modal-viewport-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        .modal-viewport-blur.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mac-modal-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15);
+            transform: scale(0.92) translateY(10px);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-viewport-blur.active .mac-modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Target String Visual Block inside Popups */
+        .target-string-preview {
+            background: rgba(217, 119, 6, 0.08);
+            border-left: 4px solid #d97706;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            color: #b45309;
+            text-align: left;
+            margin: 15px 0;
+            white-space: pre-wrap;
+        }
+
+        .tasks-list {
+            text-align: left;
+            margin: 18px 0;
+            padding-left: 20px;
+        }
+
+        .tasks-list li {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Keyboard Shortcut KBD Badge Layout */
+        kbd {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 0 #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            font-weight: bold;
+            color: #0f172a;
+            margin-left: 4px;
+            display: inline-block;
+        }
+
+        /* --- FINAL NOTIFICATION INTERFACE OVERLAY --- */
+        .completion-window {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .completion-window.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .completion-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.15);
+            transform: translateY(20px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .completion-window.active .completion-card {
+            transform: translateY(0);
+        }
+
+        /* Microsoft Word SVG Icon */
+        .ms-word-emblem {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .completion-card p {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        @media (max-width: 900px) {
+            .workspace { grid-template-columns: 1fr; }
+            body { overflow-y: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <svg style="width:24px;height:24px;fill:var(--bright-blue)" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.2,18.8L13.9,14.6L12.6,18.8H11.2L9.4,13.2H10.7L12,17.4L13.3,13.2H14.5L15.8,17.4L17.1,13.2H18.4L16.6,18.8H15.2Z"/></svg>
+            Messy to Clean
+        </div>
+        <div class="class-badge">Class 9-10 ICT</div>
+    </header>
+
+    <main class="workspace">
+        
+        <div class="glass-window" id="windowLeft">
+            <div class="window-chrome">
+                <div class="mac-dots">
+                    <div class="mac-dot dot-red"></div><div class="mac-dot dot-yellow"></div><div class="mac-dot dot-green"></div>
+                </div>
+                <span class="window-title">Unformatted_input.txt</span>
+            </div>
+            <div class="document-paper">
+                <div class="messy-canvas" id="messyCanvasContainer">
+                    <div class="messy-line-segment" id="mSeg0">   banGlaDesH  ... . </div>
+                    <div class="messy-line-segment" id="mSeg1">baNGladEsH is a viBrAnt, DeNsely pOpUlaTed sOutH aSiAn nAtIoN siTuAtEd in tHe fErTiLe dElTa oF tHe padma aNd jamuna riVeRs.</div>
+                    <div class="messy-line-segment" id="mSeg2">boRn fRoM a hiStoRic liBerAtiOn waR in 1971, iT bOrdErs iNdia aNd thE bAy oF beNgAl.</div>
+                    <div class="messy-line-segment" id="mSeg3">tOdAy, tHe rApIdLy dEvElOpInG cOuNtRy iS gLoBaLlY ReCoGnIzEd fOr iTs mAsSiVe gArMeNt iNdUsTrY, rIcH bEnGaLi cUlTuRe, aNd tHe sundarbans, tHe wOrLd'S lArGeSt mAnGrOvE fOrEsT.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-window" id="windowRight">
+            <div class="window-chrome">
+                <div class="mac-dots">
+                    <div class="mac-dot dot-red"></div><div class="mac-dot dot-yellow"></div><div class="mac-dot dot-green"></div>
+                </div>
+                <span class="window-title">Formatted.docx - Microsoft Word</span>
+            </div>
+            <div class="document-paper">
+                <div class="clean-canvas" id="cleanCanvasContainer"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="history-deck">
+            <button class="btn btn-secondary" id="actionUndoBtn" disabled>↩️ Undo Line</button>
+            <button class="btn btn-primary" id="actionMainTriggerBtn">Let's Fix Line</button>
+            <button class="btn btn-secondary" id="actionRedoBtn" disabled>Redo Line ↪️</button>
+        </div>
+    </footer>
+
+    <div class="modal-viewport-blur" id="presentationPopupModal">
+        <div class="mac-modal-box">
+            <span class="step-indicator" id="modalStepLabel">Line 1 Processing</span>
+            <h4 style="margin: 5px 0 10px 0; font-size:1rem; color:var(--text-muted);">Source Line Input:</h4>
+            
+            <div class="target-string-preview" id="modalSourceLinePreview">Text content sample</div>
+            
+            <h3 style="font-size:1.25rem; margin-bottom:10px;">🔧 Required MS Word Actions:</h3>
+            <ul class="tasks-list" id="modalTasksUnorderedList"></ul>
+            
+            <button class="btn btn-primary" id="modalConfirmActionBtn" style="width:100%; padding:12px; border-radius:12px; font-size:1rem;">OK, Run Format Typing</button>
+        </div>
+    </div>
+
+    <div class="completion-window" id="finalMessageOverlay">
+        <div class="completion-card">
+            <svg class="ms-word-emblem" viewBox="0 0 24 24">
+                <path fill="#0078D4" d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M15.2,16.8L13.9,12.6L12.6,16.8H11.2L9.4,11.2H10.7L12,15.4L13.3,11.2H14.5L15.8,15.4L17.1,11.2H18.4L16.6,16.8H15.2Z"/>
+            </svg>
+            <p>আমরা <strong>MS Word</strong> সফটওয়্যার ব্যবহার করে খুব সহজেই টেক্সট ফরম্যাটিং করতে পারি। পরবর্তী <strong>ল্যাব ক্লাসে </strong>আমরা নিজেরা এই কাজগুলো প্র্যাকটিস করবো!</p>
+        </div>
+    </div>
+
+    <script>
+        const lessonSteps = [
+            {
+                lineId: 0,
+                sourceRawText: "   banGlaDesH  ... . ",
+                actions: [
+                    "শিরোনামের অতিরিক্ত স্পেস এবং ডট(.) চিহ্নগুলো কেটে বাদ দেব।",
+                    "লেখাটিকে পৃষ্ঠার মাঝখানে নিয়ে আসব (Center Align)। <kbd>Ctrl</kbd> + <kbd>E</kbd>",
+                    "ডকুমেন্টের প্রধান শিরোনাম বোঝাতে লেখাটিকে মোটা করব (Bold)। <kbd>Ctrl</kbd> + <kbd>B</kbd>",
+                    "ফন্ট সাইজ বৃদ্ধি করে ২৪ (Font Size) এ রূপান্তর করব।",
+                    "শিরোনামের নিচে একটি নিখুঁত আন্ডারলাইন রেখা টানব (Underline)। <kbd>Ctrl</kbd> + <kbd>U</kbd>",
+                    "মূল থিম কালার Blue প্রয়োগ করব(Color)।"
+                ],
+                targetContainerId: "nodeBlock0",
+                finalHTML: `<div class="wp-title-node">Bangladesh</div>`
+            },
+            {
+                lineId: 1,
+                sourceRawText: "baNGladEsH is a viBrAnt, DeNsely pOpUlaTed sOutH aSiAn nAtIoN siTuAtEd in tHe fErTiLe dElTa oF tHe padma aNd jamuna riVeRs.",
+                actions: [
+                   "অগোছালো অক্ষরের কেস বিন্যাস পরিবর্তন করে সঠিক ব্যাকরণগত রূপ দেব।",
+                    "ভৌগোলিক নাম 'Padma' এবং 'Jamuna' শব্দ দুটির প্রথম অক্ষর Capital Letter করব।",
+                    "উভয় পাশের মার্জিন সোজা করার জন্য জাস্টিফাই মোড অন করব (Justify)। <kbd>Ctrl</kbd> + <kbd>J</kbd>",
+                    "প্যারাগ্রাফের জন্য স্ট্যান্ডার্ড ফন্ট সাইজ ১৬ (Front Size)নির্ধারণ করব।",
+                    "গুরুত্বপূর্ণ নদী 'Padma' এবং 'Jamuna' অংশটিকে Fresh Green কালার করার সাথে বোল্ড এবং ইটালিক রূপ দেব। <kbd>Ctrl</kbd> + <kbd>B</kbd> + <kbd>I</kbd>"
+                ],
+                targetContainerId: "nodeBlock1",
+                finalHTML: `<div class="wp-p-node">Bangladesh is a vibrant, densely populated South Asian nation situated in the fertile delta of the <strong>Padma</strong> and <strong>Jamuna</strong> rivers.</div>`
+            },
+            {
+                lineId: 2,
+                sourceRawText: "boRn fRoM a hiStoRic liBerAtiOn waR in 1971, iT bOrdErs iNdia aNd thE bAy oF beNgAl. ",
+                actions: [
+                    "অগোছালো অক্ষরের কেস বিন্যাস পরিবর্তন করে সঠিক ব্যাকরণগত রূপ দেব।",
+                    "নির্দিষ্ট নামবাচক স্থান 'India' এবং 'Bay of Bengal' এর প্রথম অক্ষরগুলো Capital করব।",
+                    "উভয় পাশের মার্জিন সোজা করার জন্য জাস্টিফাই মোড অন করব (Justify)। <kbd>Ctrl</kbd> + <kbd>J</kbd>",
+                    "হাইলাইট করতে 'India' এবং 'Bay of Bengal' অংশটিকে Fresh Green কালার করার সাথে বোল্ড এবং ইটালিক রূপ দেব।  <kbd>Ctrl</kbd> + <kbd>B</kbd> + <kbd>I</kbd>"
+                ],
+                targetContainerId: "nodeBlock2",
+                finalHTML: `<div class="wp-p-node">Born from a historic liberation war in 1971, it borders <strong>India</strong> and the <strong>Bay of Bengal</strong>.</div>`
+            },
+            {
+                lineId: 3,
+                sourceRawText: "tOdAy, tHe rApIdLy dEvElOpInG cOuNtRy iS gLoBaLlY ReCoGnIzEd fOr iTs mAsSiVe gArMeNt iNdUsTrY, rIcH bEnGaLi cUlTuRe, aNd tHe sundarbans, tHe wOrLd'S lArGeSt mAnGrOvE fOrEsT.",
+                actions: [
+                    "অগোছালো অক্ষরের কেস বিন্যাস পরিবর্তন করে সঠিক ব্যাকরণগত রূপ দেব।",
+                    "ঐতিহাসিক নাম 'Sundarbans' এবং 'Bengali culture' এর প্রথম অক্ষর ক্যাপিটাল করব।",
+                    "উভয় পাশের মার্জিন সোজা করার জন্য জাস্টিফাই মোড অন করব (Justify)। <kbd>Ctrl</kbd> + <kbd>J</kbd>",
+                    "গুরুত্বপূর্ণ জাতীয় সম্পদ ও সংস্কৃতি বোঝাতে 'Bengali culture' এবং 'Sundarbans' অংশটিকে Fresh Green কালার করার সাথে বোল্ড এবং ইটালিক রূপ দেব। <kbd>Ctrl</kbd> + <kbd>B</kbd> + <kbd>I</kbd>"
+                ],
+                targetContainerId: "nodeBlock3",
+                finalHTML: `<div class="wp-p-node">Today, the rapidly developing country is globally recognized for its massive garment industry, rich <em>Bengali culture</em>, and the <em>Sundarbans</em>, the world's largest mangrove forest.</div>`
+            }
+        ];
+
+        let currentActivePhase = -1;
+        let highestCommittedPhase = -1;
+
+        const actionMainTriggerBtn = document.getElementById('actionMainTriggerBtn');
+        const actionUndoBtn = document.getElementById('actionUndoBtn');
+        const actionRedoBtn = document.getElementById('actionRedoBtn');
+        const presentationPopupModal = document.getElementById('presentationPopupModal');
+        const modalStepLabel = document.getElementById('modalStepLabel');
+        const modalSourceLinePreview = document.getElementById('modalSourceLinePreview');
+        const modalTasksUnorderedList = document.getElementById('modalTasksUnorderedList');
+        const modalConfirmActionBtn = document.getElementById('modalConfirmActionBtn');
+        const cleanCanvasContainer = document.getElementById('cleanCanvasContainer');
+        const windowLeft = document.getElementById('windowLeft');
+        const windowRight = document.getElementById('windowRight');
+        const finalMessageOverlay = document.getElementById('finalMessageOverlay');
+
+        actionMainTriggerBtn.addEventListener('click', () => {
+            if (currentActivePhase >= lessonSteps.length - 1) {
+                finalMessageOverlay.classList.add('active');
+                return;
+            }
+
+            if(currentActivePhase < lessonSteps.length - 1) {
+                currentActivePhase++;
+                triggerPopupPresentation(currentActivePhase);
+            }
+        });
+
+        function triggerPopupPresentation(index) {
+            const sequenceData = lessonSteps[index];
+            
+            resetLeftCanvasVisualMarkers();
+            document.getElementById(`mSeg${sequenceData.lineId}`).classList.add('processing');
+
+            modalStepLabel.innerText = `Line ${index + 1} of ${lessonSteps.length} Processing Rules`;
+            modalSourceLinePreview.innerText = sequenceData.sourceRawText;
+            
+            modalTasksUnorderedList.innerHTML = '';
+            sequenceData.actions.forEach(actString => {
+                const li = document.createElement('li');
+                li.innerHTML = actString;
+                modalTasksUnorderedList.appendChild(li);
+            });
+
+            presentationPopupModal.classList.add('active');
+        }
+
+        modalConfirmActionBtn.addEventListener('click', () => {
+            presentationPopupModal.classList.remove('active');
+            runTypewriterSequence(currentActivePhase);
+        });
+
+        function runTypewriterSequence(index) {
+            actionMainTriggerBtn.disabled = true;
+            actionUndoBtn.disabled = true;
+            actionRedoBtn.disabled = true;
+
+            windowLeft.classList.remove('focus-highlight');
+            windowRight.classList.add('focus-highlight');
+
+            const currentStepData = lessonSteps[index];
+            
+            let targetDivWrapper = document.getElementById(currentStepData.targetContainerId);
+            if(!targetDivWrapper) {
+                targetDivWrapper = document.createElement('div');
+                targetDivWrapper.id = currentStepData.targetContainerId;
+                cleanCanvasContainer.appendChild(targetDivWrapper);
+            }
+
+            let fullMarkupPayload = currentStepData.finalHTML;
+            let stringParserOffset = 0;
+
+            const typewriterClock = setInterval(() => {
+                if (stringParserOffset < fullMarkupPayload.length) {
+                    if (fullMarkupPayload.charAt(stringParserOffset) === '<') {
+                        stringParserOffset = fullMarkupPayload.indexOf('>', stringParserOffset) + 1;
+                    } else {
+                        stringParserOffset++;
+                    }
+                    targetDivWrapper.innerHTML = fullMarkupPayload.substring(0, stringParserOffset) + `<span class="type-cursor"></span>`;
+                } else {
+                    clearInterval(typewriterClock);
+                    targetNodeCleanUp();
+                }
+            }, 15);
+
+            function targetNodeCleanUp() {
+                targetDivWrapper.innerHTML = fullMarkupPayload; 
+                
+                if(highestCommittedPhase < index) {
+                    highestCommittedPhase = index;
+                }
+
+                const completeLeftSegment = document.getElementById(`mSeg${currentStepData.lineId}`);
+                completeLeftSegment.classList.remove('processing');
+                completeLeftSegment.classList.add('cleared');
+
+                refreshInterfaceControlStates();
+            }
+        }
+
+        function refreshInterfaceControlStates() {
+            windowRight.classList.remove('focus-highlight');
+
+            if(currentActivePhase >= lessonSteps.length - 1) {
+                actionMainTriggerBtn.innerText = "Complete";
+                actionMainTriggerBtn.disabled = false; 
+                actionUndoBtn.disabled = false;
+                actionRedoBtn.disabled = true;
+            } else {
+                actionMainTriggerBtn.innerText = `Let's Fix Line ${currentActivePhase + 2}`;
+                actionMainTriggerBtn.disabled = false;
+                actionUndoBtn.disabled = false;
+                actionRedoBtn.disabled = (currentActivePhase >= highestCommittedPhase);
+            }
+        }
+
+        function resetLeftCanvasVisualMarkers() {
+            for(let i=0; i < lessonSteps.length; i++) {
+                const seg = document.getElementById(`mSeg${i}`);
+                if(seg) seg.classList.remove('processing');
+            }
+        }
+
+        actionUndoBtn.addEventListener('click', () => {
+            if(currentActivePhase >= 0) {
+                const dataInstance = lessonSteps[currentActivePhase];
+                const cleanDOMTarget = document.getElementById(dataInstance.targetContainerId);
+                if(cleanDOMTarget) cleanDOMTarget.remove();
+
+                const messyDOMTarget = document.getElementById(`mSeg${dataInstance.lineId}`);
+                if(messyDOMTarget) messyDOMTarget.classList.remove('cleared', 'processing');
+
+                currentActivePhase--;
+                resetLeftCanvasVisualMarkers();
+
+                if(currentActivePhase === -1) {
+                    actionMainTriggerBtn.innerText = "Let's Fix Line 1";
+                    actionUndoBtn.disabled = true;
+                } else {
+                    actionMainTriggerBtn.innerText = `Let's Fix Line ${currentActivePhase + 2}`;
+                }
+
+                actionMainTriggerBtn.disabled = false;
+                actionRedoBtn.disabled = false;
+            }
+        });
+
+        actionRedoBtn.addEventListener('click', () => {
+            if(currentActivePhase < highestCommittedPhase) {
+                currentActivePhase++;
+                triggerPopupPresentation(currentActivePhase);
+            }
+        });
+
+        finalMessageOverlay.addEventListener('click', () => {
+            finalMessageOverlay.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
